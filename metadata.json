@@ -1,0 +1,6 @@
+{
+  "name": "Live Shared Grocery List",
+  "description": "Real-time family grocery list with master catalog, weekly shopping list, item quantities, store aisle ordering, and live synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Family List — design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Azeret+Mono:wght@400..600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Every value below mirrors docs/DESIGN.md. DESIGN.md is canonical. */
+      :root {
+        --zone-fresh: #a3f2b5;
+        --zone-bake: #ffe78f;
+        --zone-butcher: #ffc3a0;
+        --zone-cold: #9cd2ea;
+        --zone-dry: #e9e2c8;
+        --on-zone: #111111;
+
+        --paper: #efefef;
+        --surface: #ffffff;
+        --surface-sunk: #e8e8e6;
+        --ink: #111111;
+        --ink-2: #55565a;
+        --ink-3: #8a8b90;
+        --edge: rgb(17 17 17 / 0.1);
+        --edge-strong: rgb(17 17 17 / 0.28);
+        --action: #111111;
+        --on-action: #ffffff;
+        --danger: #a32b1c;
+        --ring: #111111;
+        --scrim: rgb(17 17 17 / 0.5);
+        --surface-veil: rgb(255 255 255 / 0.95);
+        --paper-veil: rgb(239 239 239 / 0.95);
+
+        --text-sign: 2rem;
+        --text-h1: 1.375rem;
+        --text-h2: 1.0625rem;
+        --text-body: 0.9375rem;
+        --text-sm: 0.8125rem;
+        --text-label: 0.6875rem;
+        --text-data: 0.8125rem;
+
+        --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+        --font-mono: 'Azeret Mono', ui-monospace, monospace;
+
+        --radius-edge: 4px;
+        --radius-box: 8px;
+        --radius-sheet: 12px;
+        --radius-pill: 999px;
+
+        --space-hair: 2px;
+        --space-tight: 4px;
+        --space-snug: 8px;
+        --space-base: 12px;
+        --space-gutter: 16px;
+        --space-section: 24px;
+        --space-band: 40px;
+
+        --shadow-sticky: 0 1px 0 0 var(--edge), 0 6px 20px -12px rgb(17 17 17 / 0.28);
+        --shadow-float: 0 24px 60px -20px rgb(17 17 17 / 0.45);
+      }
+
+      html[data-theme='dark'] {
+        --zone-dry: #cfc7ab;
+        --paper: #121316;
+        --surface: #1a1c20;
+        --surface-sunk: #24262b;
+        --ink: #f4f4f5;
+        --ink-2: #a7a9ae;
+        --ink-3: #75777d;
+        --edge: rgb(255 255 255 / 0.12);
+        --edge-strong: rgb(255 255 255 / 0.32);
+        --action: #a3f2b5;
+        --on-action: #111111;
+        --danger: #ff9b8a;
+        --ring: #a3f2b5;
+        --scrim: rgb(0 0 0 / 0.6);
+        --surface-veil: rgb(26 28 32 / 0.95);
+        --paper-veil: rgb(18 19 22 / 0.95);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: var(--text-body);
+        line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: var(--space-band) var(--space-gutter) 6rem;
+      }
+      :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
+
+      /* ---- page chrome, deliberately neutral ---- */
+      .sign {
+        font-variation-settings: 'wdth' 115;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .eyebrow {
+        font-size: var(--text-label);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+      h1.title {
+        font-size: var(--text-sign);
+        line-height: 1.05;
+        margin: 0.25rem 0 0.5rem;
+      }
+      h2.section {
+        font-size: var(--text-h2);
+        margin: 0;
+      }
+      section.block {
+        margin-top: var(--space-band);
+        padding-top: var(--space-section);
+        border-top: 1px solid var(--edge);
+      }
+      p.lede {
+        color: var(--ink-2);
+        max-width: 44rem;
+        margin: 0.5rem 0 0;
+      }
+      .grid {
+        display: grid;
+        gap: var(--space-base);
+        margin-top: var(--space-section);
+      }
+      .cols-5 {
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+      }
+      .cols-3 {
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      }
+      .mono {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-base);
+        flex-wrap: wrap;
+      }
+      .spec {
+        font-family: var(--font-mono);
+        font-size: var(--text-label);
+        color: var(--ink-3);
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+
+      /* ---- tokens rendered live ---- */
+      .swatch {
+        border: 1px solid var(--edge);
+        border-radius: var(--radius-box);
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .swatch .chip {
+        height: 4.5rem;
+        display: flex;
+        align-items: flex-end;
+        padding: var(--space-snug);
+        font-size: var(--text-label);
+        font-weight: 600;
+      }
+      .swatch .meta {
+        padding: var(--space-snug);
+        border-top: 1px solid var(--edge);
+      }
+      .swatch .name {
+        font-size: var(--text-sm);
+        font-weight: 500;
+      }
+
+      .specimen {
+        border-top: 1px solid var(--edge);
+        padding: var(--space-base) 0;
+        display: flex;
+        gap: var(--space-gutter);
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .bar {
+        background: var(--ink);
+        height: 0.75rem;
+        border-radius: var(--radius-edge);
+      }
+
+      .radius-box {
+        height: 4.5rem;
+        background: var(--surface-sunk);
+        border: 1px solid var(--edge-strong);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ---- the app's own components ---- */
+      .sheet {
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: var(--radius-sheet);
+        overflow: hidden;
+      }
+      .field {
+        width: 100%;
+        background: var(--surface-sunk);
+        color: var(--ink);
+        border: 1px solid var(--edge);
+        border-radius: var(--radius-box);
+        padding: var(--space-snug) var(--space-base);
+        font-size: var(--text-sm);
+        font-family: var(--font-sans);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-tight);
+        border-radius: var(--radius-box);
+        padding: var(--space-snug) 14px;
+        font-size: var(--text-sm);
+        font-weight: 600;
+        font-family: var(--font-sans);
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+      .btn-action {
+        background: var(--action);
+        color: var(--on-action);
+      }
+      .btn-quiet {
+        background: transparent;
+        color: var(--ink);
+        border-color: var(--edge-strong);
+      }
+      .btn-bare {
+        background: transparent;
+        color: var(--ink-2);
+        border-color: transparent;
+        padding: 6px;
+      }
+      .btn-disabled {
+        opacity: 0.4;
+      }
+      .btn-hover {
+        background: color-mix(in oklab, var(--action) 86%, var(--ink));
+        color: var(--on-action);
+      }
+
+      .tick {
+        width: 3px;
+        border-radius: var(--radius-pill);
+        background: var(--tick-color, var(--edge-strong));
+        align-self: stretch;
+        min-height: 1rem;
+      }
+      .zone-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-tight);
+        background: var(--surface-sunk);
+        color: var(--ink-2);
+        border-radius: var(--radius-pill);
+        padding: var(--space-hair) var(--space-snug);
+        font-size: var(--text-label);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .zone-chip::before {
+        content: '';
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: var(--radius-pill);
+        background: var(--tick-color);
+      }
+
+      .cbox {
+        width: 20px;
+        height: 20px;
+        border-radius: var(--radius-edge);
+        border: 1px solid var(--edge-strong);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .cbox-on {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+      }
+
+      .aisle-sign {
+        display: flex;
+        align-items: center;
+        gap: var(--space-base);
+        padding: var(--space-snug) var(--space-gutter);
+        border-bottom: 1px solid var(--edge);
+        background: var(--surface);
+      }
+      .item-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-base);
+        padding: var(--space-snug) var(--space-gutter);
+        border-bottom: 1px solid var(--edge);
+      }
+      .item-row:last-child {
+        border-bottom: 0;
+      }
+      .struck {
+        text-decoration: line-through;
+        color: var(--ink-3);
+      }
+      .stepper {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--edge);
+        border-radius: var(--radius-box);
+        margin-left: auto;
+      }
+      .stepper span {
+        padding: 0 var(--space-snug);
+        font-family: var(--font-mono);
+        font-size: var(--text-data);
+      }
+
+      /* the signature */
+      .rail {
+        display: flex;
+        gap: var(--space-tight);
+        height: 2.75rem;
+      }
+      .seg {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 1.5rem;
+        border-radius: var(--radius-edge);
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgb(17 17 17 / 0.14);
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        background: transparent;
+      }
+      .seg .track,
+      .seg .fill {
+        position: absolute;
+        inset: 0;
+        background: var(--tick-color);
+      }
+      .seg .track {
+        opacity: 0.3;
+      }
+      .seg .fill {
+        right: auto;
+      }
+      .seg-current {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      .rail-ends {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--space-tight);
+      }
+
+      .tab {
+        font-size: var(--text-label);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        font-variation-settings: 'wdth' 115;
+        font-weight: 700;
+        padding: var(--space-base) 0;
+        border-bottom: 2px solid transparent;
+        color: var(--ink-3);
+        background: none;
+        border-top: 0;
+        border-left: 0;
+        border-right: 0;
+        cursor: pointer;
+      }
+      .tab-active {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+      }
+
+      .toast {
+        background: var(--ink);
+        color: var(--paper);
+        font-size: var(--text-sm);
+        border-radius: var(--radius-box);
+        padding: 10px var(--space-gutter);
+        display: inline-block;
+        box-shadow: var(--shadow-float);
+      }
+
+      .dialog {
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: var(--radius-sheet);
+        box-shadow: var(--shadow-float);
+        max-width: 24rem;
+      }
+
+      .dos {
+        display: grid;
+        gap: var(--space-section);
+        grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        margin-top: var(--space-section);
+      }
+      .dos ul {
+        margin: var(--space-snug) 0 0;
+        padding-left: 1.1rem;
+        color: var(--ink-2);
+        font-size: var(--text-sm);
+      }
+      .dos li {
+        margin-bottom: var(--space-snug);
+      }
+
+      .toggle {
+        position: fixed;
+        top: var(--space-gutter);
+        right: var(--space-gutter);
+        z-index: 5;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="btn btn-quiet toggle" id="theme-toggle" aria-pressed="false">Dark</button>
+
+    <div class="wrap">
+      <header>
+        <p class="eyebrow">Design system · mirror of docs/DESIGN.md</p>
+        <h1 class="title sign">Family List</h1>
+        <p class="lede">
+          A wayfinding design system for a shared grocery list that sorts itself into the order you
+          walk a shop. This page renders every token live in the browser;
+          <strong>docs/DESIGN.md is canonical</strong> and this file mirrors it.
+        </p>
+      </header>
+
+      <!-- COLORS -->
+      <section class="block">
+        <h2 class="section sign">Colors</h2>
+        <p class="lede">
+          Five palette colours, each bound to one region of the shop. A palette colour appears only
+          where it says where something lives — never as a status badge or a statistic card.
+        </p>
+
+        <div class="grid cols-5">
+          <div class="swatch">
+            <div class="chip" style="background: var(--zone-fresh); color: var(--on-zone)">Produce</div>
+            <div class="meta">
+              <div class="name">zone-fresh</div>
+              <div class="spec">#A3F2B5</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--zone-bake); color: var(--on-zone)">
+              Bakery · snacks
+            </div>
+            <div class="meta">
+              <div class="name">zone-bake</div>
+              <div class="spec">#FFE78F</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--zone-butcher); color: var(--on-zone)">
+              Meat · fish
+            </div>
+            <div class="meta">
+              <div class="name">zone-butcher</div>
+              <div class="spec">#FFC3A0</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--zone-cold); color: var(--on-zone)">
+              Dairy · frozen · drinks
+            </div>
+            <div class="meta">
+              <div class="name">zone-cold</div>
+              <div class="spec">#9CD2EA</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--zone-dry); color: var(--on-zone)">
+              Pantry · household
+            </div>
+            <div class="meta">
+              <div class="name">zone-dry</div>
+              <div class="spec">#E9E2C8 · #CFC7AB dark</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid cols-5">
+          <div class="swatch">
+            <div class="chip" style="background: var(--paper); color: var(--ink)">Paper</div>
+            <div class="meta">
+              <div class="name">paper</div>
+              <div class="spec">#EFEFEF · #121316 dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--surface); color: var(--ink)">Surface</div>
+            <div class="meta">
+              <div class="name">surface</div>
+              <div class="spec">#FFFFFF · #1A1C20 dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--surface-sunk); color: var(--ink)">Sunk</div>
+            <div class="meta">
+              <div class="name">surface-sunk</div>
+              <div class="spec">#E8E8E6 · #24262B dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--ink); color: var(--paper)">Ink</div>
+            <div class="meta">
+              <div class="name">ink</div>
+              <div class="spec">#111111 · #F4F4F5 dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--action); color: var(--on-action)">Action</div>
+            <div class="meta">
+              <div class="name">action / on-action</div>
+              <div class="spec">#111111 · #A3F2B5 dark</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid cols-3">
+          <div class="swatch">
+            <div class="chip" style="background: var(--surface); color: var(--ink-2)">
+              Secondary text on surface
+            </div>
+            <div class="meta">
+              <div class="name">ink-2</div>
+              <div class="spec">#55565A · #A7A9AE dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--surface); color: var(--ink-3)">
+              Meta text on surface
+            </div>
+            <div class="meta">
+              <div class="name">ink-3</div>
+              <div class="spec">#8A8B90 · #75777D dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--surface); color: var(--danger)">
+              Destructive, on hover only
+            </div>
+            <div class="meta">
+              <div class="name">danger</div>
+              <div class="spec">#A32B1C · #FF9B8A dark</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="lede" style="margin-top: var(--space-section)">
+          Translucency is tokenised, never an opacity modifier: an opacity modifier does not survive
+          a <code>@theme inline</code> build — Tailwind cannot resolve the alpha of a
+          <code>var()</code> and emits the opaque colour instead.
+        </p>
+        <div class="grid cols-3">
+          <div class="swatch">
+            <div
+              class="chip"
+              style="background:
+                linear-gradient(90deg, var(--zone-fresh), var(--zone-butcher));
+                position: relative"
+            >
+              <span
+                style="position: absolute; inset: 0; background: var(--scrim); display: flex;
+                  align-items: flex-end; padding: var(--space-snug); color: #fff"
+                >Dialog backdrop</span
+              >
+            </div>
+            <div class="meta">
+              <div class="name">scrim</div>
+              <div class="spec">#11111180 · #00000099 dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--surface-veil); color: var(--ink)">
+              Sticky header, aisle signs
+            </div>
+            <div class="meta">
+              <div class="name">surface-veil</div>
+              <div class="spec">#FFFFFFF2 · #1A1C20F2 dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: var(--paper-veil); color: var(--ink)">
+              Sticky aisle stepper
+            </div>
+            <div class="meta">
+              <div class="name">paper-veil</div>
+              <div class="spec">#EFEFEFF2 · #121316F2 dark</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TYPOGRAPHY -->
+      <section class="block">
+        <h2 class="section sign">Typography</h2>
+        <p class="lede">
+          Archivo with its width axis, plus Azeret Mono for data. Hierarchy comes from width and
+          size, not weight — nothing below the sign roles goes above weight 500.
+        </p>
+
+        <div style="margin-top: var(--space-section)">
+          <div class="specimen">
+            <span class="sign" style="font-size: var(--text-sign); line-height: 1.05">Aisle 7 · Dairy</span>
+            <span class="spec">sign · Archivo 32px/1.05 · w700 · wdth 115 · caps</span>
+          </div>
+          <div class="specimen">
+            <span style="font-size: var(--text-h1); line-height: 1.15; letter-spacing: -0.01em; font-weight: 500"
+              >8 items left, across 4 aisles.</span
+            >
+            <span class="spec">h1 · Archivo 22px/1.15 · w500 · -0.01em</span>
+          </div>
+          <div class="specimen">
+            <span class="sign" style="font-size: var(--text-h2); line-height: 1.25">Milk, eggs &amp; cheese</span>
+            <span class="spec">h2 · Archivo 17px/1.25 · w700 · wdth 115 · caps</span>
+          </div>
+          <div class="specimen">
+            <span style="font-size: var(--text-body)">Organic bananas, the firm ones</span>
+            <span class="spec">body · Archivo 15px/1.45 · w400</span>
+          </div>
+          <div class="specimen">
+            <span style="font-size: var(--text-sm); color: var(--ink-2)"
+              >Everything the household buys. Tick an item to put it on this week's list.</span
+            >
+            <span class="spec">sm · Archivo 13px/1.4 · w400</span>
+          </div>
+          <div class="specimen">
+            <span class="eyebrow">Entrance · Checkout · Here now</span>
+            <span class="spec">label · Archivo 11px/1.1 · w600 · 0.09em · caps</span>
+          </div>
+          <div class="specimen">
+            <span class="mono" style="font-size: var(--text-data)">2 lbs · 12× · 3w ago · FAMILY-LIST</span>
+            <span class="spec">data · Azeret Mono 13px/1.2 · tabular-nums</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SPACING -->
+      <section class="block">
+        <h2 class="section sign">Spacing</h2>
+        <p class="lede">A 4px rhythm. Rows use snug vertical and gutter horizontal padding.</p>
+        <div style="margin-top: var(--space-section); display: grid; gap: var(--space-snug)">
+          <div class="row"><span class="bar" style="width: 2px"></span><span class="spec">hair · 2px</span></div>
+          <div class="row"><span class="bar" style="width: 4px"></span><span class="spec">tight · 4px</span></div>
+          <div class="row"><span class="bar" style="width: 8px"></span><span class="spec">snug · 8px</span></div>
+          <div class="row"><span class="bar" style="width: 12px"></span><span class="spec">base · 12px</span></div>
+          <div class="row"><span class="bar" style="width: 16px"></span><span class="spec">gutter · 16px</span></div>
+          <div class="row"><span class="bar" style="width: 24px"></span><span class="spec">section · 24px</span></div>
+          <div class="row"><span class="bar" style="width: 40px"></span><span class="spec">band · 40px</span></div>
+        </div>
+      </section>
+
+      <!-- RADIUS -->
+      <section class="block">
+        <h2 class="section sign">Radius</h2>
+        <p class="lede">
+          Four radii, each with a job. Fields and buttons share <code>box</code>; neither is a pill.
+        </p>
+        <div class="grid cols-5">
+          <div>
+            <div class="radius-box" style="border-radius: var(--radius-edge)"></div>
+            <p class="spec" style="margin-top: var(--space-snug)">edge · 4px · marks, rail segments</p>
+          </div>
+          <div>
+            <div class="radius-box" style="border-radius: var(--radius-box)"></div>
+            <p class="spec" style="margin-top: var(--space-snug)">box · 8px · buttons, fields</p>
+          </div>
+          <div>
+            <div class="radius-box" style="border-radius: var(--radius-sheet)"></div>
+            <p class="spec" style="margin-top: var(--space-snug)">sheet · 12px · sheets, dialogs</p>
+          </div>
+          <div>
+            <div class="radius-box" style="border-radius: var(--radius-pill)"></div>
+            <p class="spec" style="margin-top: var(--space-snug)">pill · 999px · capsules only</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ELEVATION -->
+      <section class="block">
+        <h2 class="section sign">Elevation &amp; depth</h2>
+        <p class="lede">
+          Three background levels and a hairline carry depth. Only the sticky header and floating
+          layers cast a shadow.
+        </p>
+        <div class="grid cols-3">
+          <div class="sheet" style="padding: var(--space-gutter)">
+            <p class="eyebrow">Flat — default</p>
+            <p class="spec">1px edge hairline, no shadow</p>
+          </div>
+          <div class="sheet" style="padding: var(--space-gutter); box-shadow: var(--shadow-sticky)">
+            <p class="eyebrow">shadow-sticky</p>
+            <p class="spec">Sticky header only</p>
+          </div>
+          <div class="sheet" style="padding: var(--space-gutter); box-shadow: var(--shadow-float)">
+            <p class="eyebrow">shadow-float</p>
+            <p class="spec">Dialogs and the toast</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPONENTS -->
+      <section class="block">
+        <h2 class="section sign">Components</h2>
+
+        <p class="eyebrow" style="margin-top: var(--space-section)">Aisle rail — the signature</p>
+        <p class="lede">
+          One segment per aisle in walking order, each as wide as the item count waiting there,
+          coloured by zone, filling from the left as items go in the cart. It replaces a progress
+          bar, statistic cards and an aisle picker at once.
+        </p>
+        <div style="margin-top: var(--space-base)">
+          <div class="rail">
+            <button class="seg" style="--tick-color: var(--zone-fresh); flex-grow: 5" aria-label="Aisle 1, produce">
+              <span class="track"></span><span class="fill" style="width: 80%"></span>
+            </button>
+            <button class="seg" style="--tick-color: var(--zone-bake); flex-grow: 2" aria-label="Aisle 2, bakery">
+              <span class="track"></span><span class="fill" style="width: 100%"></span>
+            </button>
+            <button
+              class="seg seg-current"
+              style="--tick-color: var(--zone-butcher); flex-grow: 3"
+              aria-label="Aisle 3, meat, current"
+              aria-current="step"
+            >
+              <span class="track"></span><span class="fill" style="width: 33%"></span>
+            </button>
+            <button class="seg" style="--tick-color: var(--zone-dry); flex-grow: 6" aria-label="Aisle 4, pantry">
+              <span class="track"></span><span class="fill" style="width: 0%"></span>
+            </button>
+            <button class="seg" style="--tick-color: var(--zone-cold); flex-grow: 4" aria-label="Aisle 5, dairy">
+              <span class="track"></span><span class="fill" style="width: 0%"></span>
+            </button>
+          </div>
+          <div class="rail-ends">
+            <span class="eyebrow">Entrance</span>
+            <span class="eyebrow">9 of 20 picked up</span>
+            <span class="eyebrow">Checkout</span>
+          </div>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">The run — sign and item rows</p>
+        <div class="sheet" style="margin-top: var(--space-base)">
+          <div class="aisle-sign">
+            <span class="mono" style="font-size: var(--text-label); color: var(--ink-3)">3</span>
+            <span class="tick" style="--tick-color: var(--zone-butcher)"></span>
+            <span class="sign" style="font-size: var(--text-h2)">Aisle 3 · Meat counter</span>
+            <span class="mono" style="font-size: var(--text-label); color: var(--ink-3); margin-left: auto">2/3</span>
+          </div>
+          <div class="item-row">
+            <span class="cbox"></span>
+            <span>Chicken thighs</span>
+            <span class="stepper"
+              ><button class="btn btn-bare">−</button><span>2 lbs</span
+              ><button class="btn btn-bare">+</button></span
+            >
+          </div>
+          <div class="item-row">
+            <span class="cbox cbox-on">✓</span>
+            <span class="struck">Salmon fillet</span>
+            <span class="stepper"
+              ><button class="btn btn-bare">−</button><span>1 pcs</span
+              ><button class="btn btn-bare">+</button></span
+            >
+          </div>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">Buttons</p>
+        <div class="row" style="margin-top: var(--space-base)">
+          <button class="btn btn-action">Start walkthrough</button>
+          <button class="btn btn-hover">Hover</button>
+          <button class="btn btn-action btn-disabled" disabled>Disabled</button>
+          <button class="btn btn-quiet">Add item</button>
+          <button class="btn btn-bare">Bare</button>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">Fields</p>
+        <div class="row" style="margin-top: var(--space-base); align-items: flex-end">
+          <span style="flex: 1; min-width: 12rem">
+            <label class="eyebrow" for="d-item">Item</label>
+            <input class="field" id="d-item" value="Greek yoghurt" />
+          </span>
+          <span>
+            <label class="eyebrow" for="d-qty">Quantity</label>
+            <input class="field mono" id="d-qty" value="2" style="width: 5rem" />
+          </span>
+          <span>
+            <label class="eyebrow" for="d-aisle">Aisle</label>
+            <select class="field" id="d-aisle" style="width: auto">
+              <option>Dairy &amp; Refrigerated</option>
+            </select>
+          </span>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">Checkbox, ticks and chips</p>
+        <div class="row" style="margin-top: var(--space-base)">
+          <span class="cbox"></span>
+          <span class="spec">checkbox</span>
+          <span class="cbox cbox-on">✓</span>
+          <span class="spec">checkbox-checked</span>
+          <span class="zone-chip" style="--tick-color: var(--zone-fresh)">Fresh</span>
+          <span class="zone-chip" style="--tick-color: var(--zone-cold)">Chilled</span>
+          <span class="zone-chip" style="--tick-color: var(--zone-dry)">Dry goods</span>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">Tabs</p>
+        <div class="row scroll" style="gap: var(--space-section); border-bottom: 1px solid var(--edge)">
+          <button class="tab tab-active">This week</button>
+          <button class="tab">In store</button>
+          <button class="tab">Catalog</button>
+          <button class="tab">Store layouts</button>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">Toast and dialog</p>
+        <div class="row" style="margin-top: var(--space-base); align-items: flex-start">
+          <span class="toast">Gabi · Whole milk · In the cart</span>
+          <div class="dialog">
+            <div style="padding: 20px 20px var(--space-gutter); border-bottom: 1px solid var(--edge)">
+              <h3 class="sign" style="font-size: var(--text-h2); margin: 0">Share this list</h3>
+              <p class="spec" style="margin: var(--space-tight) 0 0; font-family: var(--font-sans)">
+                Anyone with the link can read and change the list.
+              </p>
+            </div>
+            <div style="padding: 20px">
+              <p class="mono" style="font-size: var(--text-h1); margin: 0 0 var(--space-base)">FAMILY-LIST</p>
+              <button class="btn btn-action">Copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOS AND DONTS -->
+      <section class="block">
+        <h2 class="section sign">Do's and don'ts</h2>
+        <div class="dos">
+          <div>
+            <p class="eyebrow">✓ Do</p>
+            <ul>
+              <li>Use a palette colour only to say where in the shop something is.</li>
+              <li>Get hierarchy from width and size; widen and set caps for signage.</li>
+              <li>Set numbers in <code>data</code> with tabular figures, aligned in a column.</li>
+              <li>Keep one primary button per screen, labelled with what happens.</li>
+              <li>Let the list run edge to edge on phones; keep rows at or under 44px.</li>
+              <li>Write plainly and actively, in sentence case.</li>
+            </ul>
+          </div>
+          <div>
+            <p class="eyebrow">✗ Don't</p>
+            <ul>
+              <li>Don't build big-number statistic cards or a grid of identical cards.</li>
+              <li>Don't make fields pill-shaped, or give a field a button's silhouette.</li>
+              <li>Don't use green for "done" — green is produce. Completion is ink plus strikethrough.</li>
+              <li>Don't add blurred gradient blobs, glow, zero-padded numbers or shadow on every card.</li>
+              <li>Don't reach past weight 500 for body text, captions or inputs.</li>
+              <li>Don't animate anything but the check-off, and respect reduced motion.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const toggle = document.getElementById('theme-toggle');
+      toggle.addEventListener('click', () => {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+        toggle.textContent = dark ? 'Dark' : 'Light';
+        toggle.setAttribute('aria-pressed', String(!dark));
+      });
+    </script>
+  </body>
+</html>

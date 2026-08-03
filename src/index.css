@@ -1,0 +1,322 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by a class on <html>, set by the theme toggle and the
+   inline boot script in index.html. The default media strategy can't be
+   overridden by a user choice. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Store zones
+   The five palette colours are wayfinding, not decoration: each one is bound
+   to a zone of the shop and appears only where it tells you where something
+   lives. They hold across light and dark because they are signage.
+   --------------------------------------------------------------------------- */
+:root {
+  --zone-fresh: #a3f2b5; /* produce */
+  --zone-bake: #ffe78f; /* bakery, snacks */
+  --zone-butcher: #ffc3a0; /* meat & seafood */
+  --zone-cold: #9cd2ea; /* dairy, frozen, drinks */
+  --zone-dry: #e9e2c8; /* pantry, household, personal care */
+  --on-zone: #111111;
+
+  /* Structural: ink on paper */
+  --paper: #efefef;
+  --surface: #ffffff;
+  --surface-sunk: #e8e8e6;
+  --ink: #111111;
+  --ink-2: #55565a;
+  --ink-3: #8a8b90;
+  --edge: rgb(17 17 17 / 0.1);
+  --edge-strong: rgb(17 17 17 / 0.28);
+
+  /* The one interactive colour. Inverts in dark mode. */
+  --action: #111111;
+  --on-action: #ffffff;
+  --danger: #a32b1c;
+
+  --ring: #111111;
+
+  /* Translucent surfaces, declared outright: see the note in @theme inline. */
+  --scrim: rgb(17 17 17 / 0.5);
+  --surface-veil: rgb(255 255 255 / 0.95);
+  --paper-veil: rgb(239 239 239 / 0.95);
+}
+
+.dark {
+  --zone-dry: #cfc7ab;
+
+  --paper: #121316;
+  --surface: #1a1c20;
+  --surface-sunk: #24262b;
+  --ink: #f4f4f5;
+  --ink-2: #a7a9ae;
+  --ink-3: #75777d;
+  --edge: rgb(255 255 255 / 0.12);
+  --edge-strong: rgb(255 255 255 / 0.32);
+
+  --action: #a3f2b5;
+  --on-action: #111111;
+  --danger: #ff9b8a;
+
+  --ring: #a3f2b5;
+
+  --scrim: rgb(0 0 0 / 0.6);
+  --surface-veil: rgb(26 28 32 / 0.95);
+  --paper-veil: rgb(18 19 22 / 0.95);
+}
+
+/* `@theme inline` emits utilities that reference the custom properties above
+   rather than baking in their values, so every colour flips with the theme
+   without a single `dark:` variant at the call site. */
+@theme inline {
+  --color-zone-fresh: var(--zone-fresh);
+  --color-zone-bake: var(--zone-bake);
+  --color-zone-butcher: var(--zone-butcher);
+  --color-zone-cold: var(--zone-cold);
+  --color-zone-dry: var(--zone-dry);
+  --color-on-zone: var(--on-zone);
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-action: var(--action);
+  --color-on-action: var(--on-action);
+  --color-danger: var(--danger);
+  /* Opacity modifiers (`bg-ink/50`) do not survive an `inline` theme — Tailwind
+     drops the alpha and emits the opaque colour — so translucency is tokenised. */
+  --color-scrim: var(--scrim);
+  --color-surface-veil: var(--surface-veil);
+  --color-paper-veil: var(--paper-veil);
+
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Azeret Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Type scale. Width and size carry the hierarchy so weight doesn't have to;
+     nothing below the sign/heading roles goes above 500. */
+  --text-sign: 2rem;
+  --text-sign--line-height: 1.05;
+  --text-h1: 1.375rem;
+  --text-h1--line-height: 1.15;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h2: 1.0625rem;
+  --text-h2--line-height: 1.25;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.45;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.4;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.1;
+  --text-label--letter-spacing: 0.09em;
+  --text-data: 0.8125rem;
+  --text-data--line-height: 1.2;
+
+  --radius-edge: 4px;
+  --radius-box: 8px;
+  --radius-sheet: 12px;
+
+  /* Depth is carried by hairlines and contrast. Shadows are reserved for the
+     two things that genuinely float above the page. */
+  --shadow-sticky: 0 1px 0 0 var(--edge), 0 6px 20px -12px rgb(17 17 17 / 0.28);
+  --shadow-float: 0 24px 60px -20px rgb(17 17 17 / 0.45);
+}
+
+@layer base {
+  html {
+    background-color: var(--paper);
+    /* Body copy sits at a normal width; the sign role widens it deliberately. */
+    font-variation-settings: "wdth" 100;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* One rule gives every interactive element a visible keyboard affordance. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-edge);
+  }
+
+  /* Tabular figures everywhere numbers are compared down a column. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--zone-bake);
+    color: var(--on-zone);
+  }
+}
+
+@layer components {
+  /* A panel of the sheet. Flat, hairline-bounded, edge-to-edge on phones
+     because a list you scan shouldn't be inset in a floating card. */
+  .sheet {
+    background-color: var(--surface);
+    border-block: 1px solid var(--edge);
+  }
+  @media (width >= 40rem) {
+    .sheet {
+      border: 1px solid var(--edge);
+      border-radius: var(--radius-sheet);
+    }
+  }
+
+  /* Signage: the wide caps used for aisle headers and page titles. This is
+     the one place the type gets loud. */
+  .sign {
+    font-variation-settings: "wdth" 115;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Small caps label used for eyebrows and field labels. */
+  .eyebrow {
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  /* Inputs are rectangles. Only genuinely capsule-shaped things are pills, so
+     a field never reads as a button. */
+  .field {
+    width: 100%;
+    background-color: var(--surface-sunk);
+    color: var(--ink);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius-box);
+    padding: 0.5rem 0.75rem;
+    font-size: var(--text-sm);
+    font-weight: 450;
+  }
+  .field::placeholder {
+    color: var(--ink-3);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: var(--radius-box);
+    padding: 0.5rem 0.875rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .btn-action {
+    background-color: var(--action);
+    color: var(--on-action);
+  }
+  .btn-action:not(:disabled):hover {
+    background-color: color-mix(in oklab, var(--action) 86%, var(--ink));
+  }
+
+  .btn-quiet {
+    background-color: transparent;
+    color: var(--ink);
+    border-color: var(--edge-strong);
+  }
+  .btn-quiet:not(:disabled):hover {
+    background-color: var(--surface-sunk);
+  }
+
+  .btn-bare {
+    background-color: transparent;
+    color: var(--ink-2);
+    border-color: transparent;
+    padding: 0.375rem;
+  }
+  .btn-bare:not(:disabled):hover {
+    background-color: var(--surface-sunk);
+    color: var(--ink);
+  }
+
+  /* The zone tick: a colour-coded edge marker that says which part of the shop
+     a row belongs to. The only place the palette touches a list row. */
+  .tick {
+    width: 3px;
+    border-radius: 999px;
+    background-color: var(--tick-color, var(--edge-strong));
+    align-self: stretch;
+    flex-shrink: 0;
+  }
+
+  /* Zone chip, for naming a zone inline. */
+  .zone-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    background-color: var(--surface-sunk);
+    color: var(--ink-2);
+    border-radius: 999px;
+    padding: 0.125rem 0.5rem 0.125rem 0.375rem;
+    font-size: var(--text-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .zone-chip::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background-color: var(--tick-color, var(--edge-strong));
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--edge-strong);
+  border-radius: 999px;
+}
+
+/* The only animation in the app is the check-off feedback, and it goes away
+   for anyone who asked for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
