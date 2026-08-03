@@ -5,6 +5,7 @@ export interface GroceryItem {
   defaultQty: number;
   defaultUnit: string; // e.g. 'pcs', 'lbs', 'gal', 'bag', 'carton', 'pack', 'oz', 'kg', 'can'
   notes?: string;
+  storeId?: string; // Set when the item is only sold at one store; unset means available anywhere.
   isFavorite: boolean;
   inWeeklyList: boolean;
   weeklyQty: number;
@@ -38,7 +39,7 @@ export interface StoreLayout {
 export interface ActivityLog {
   id: string;
   userName: string;
-  action: 'add_weekly' | 'remove_weekly' | 'create_item' | 'mark_bought' | 'mark_unbought' | 'update_qty' | 'clear_bought' | 'store_change' | 'reorder_aisles' | 'edit_item' | 'delete_item';
+  action: 'add_weekly' | 'remove_weekly' | 'create_item' | 'mark_bought' | 'mark_unbought' | 'update_qty' | 'clear_bought' | 'store_change' | 'reorder_aisles' | 'edit_item' | 'delete_item' | 'edit_store' | 'delete_store';
   itemTitle?: string;
   details?: string;
   timestamp: number;

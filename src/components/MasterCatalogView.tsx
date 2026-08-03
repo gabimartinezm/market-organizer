@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { GroceryItem } from '../types';
+import { GroceryItem, StoreLayout } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import { getCategoryInfo } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
@@ -8,6 +8,7 @@ import { Plus, Search, Star, Edit2, Trash2, Check } from 'lucide-react';
 
 interface MasterCatalogViewProps {
   items: GroceryItem[];
+  stores: StoreLayout[];
   onToggleWeekly: (itemId: string, inWeeklyList: boolean) => void;
   onAddItem: (item: Omit<GroceryItem, 'id' | 'timesBought'>) => void;
   onEditItem: (item: GroceryItem) => void;
@@ -22,12 +23,14 @@ const BLANK_FORM = {
   defaultQty: 1,
   defaultUnit: 'pcs',
   notes: '',
+  storeId: '',
   isFavorite: false,
   inWeeklyList: true,
 };
 
 export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
   items,
+  stores,
   onToggleWeekly,
   onAddItem,
   onEditItem,
@@ -86,6 +89,7 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
       defaultQty: formData.defaultQty,
       defaultUnit: formData.defaultUnit,
       notes: formData.notes.trim() || undefined,
+      storeId: formData.storeId || undefined,
       isFavorite: formData.isFavorite,
       inWeeklyList: formData.inWeeklyList,
       weeklyQty: formData.defaultQty,
@@ -207,7 +211,7 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
           </button>
         </div>
       ) : (
-        <div className="sheet overflow-hidden">
+        <div className="sheet overflow-clip">
           {grouped.map(({ info, items: groupItems }) => (
             <section key={info.id}>
               <h2 className="sticky top-24 z-10 flex items-center gap-3 px-4 py-2.5 bg-surface-veil backdrop-blur-sm border-y border-edge">
@@ -253,6 +257,11 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
                         </button>
                       </div>
                       {item.notes && <p className="text-sm text-ink-3 truncate">{item.notes}</p>}
+                      {item.storeId && (
+                        <p className="text-sm text-ink-3 truncate">
+                          Only at {stores.find((s) => s.id === item.storeId)?.name || 'one store'}
+                        </p>
+                      )}
                     </div>
 
                     {/* Aligned in columns so the numbers can actually be compared. */}
@@ -378,6 +387,25 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
               />
             </div>
 
+            <div className="flex flex-col gap-1">
+              <label htmlFor="new-store" className="eyebrow">
+                Available at
+              </label>
+              <select
+                id="new-store"
+                value={formData.storeId}
+                onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
+                className="field"
+              >
+                <option value="">Any store</option>
+                {stores.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
@@ -478,6 +506,27 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
                 onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
                 className="field"
               />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="edit-store" className="eyebrow">
+                Available at
+              </label>
+              <select
+                id="edit-store"
+                value={editingItem.storeId || ''}
+                onChange={(e) =>
+                  setEditingItem({ ...editingItem, storeId: e.target.value || undefined })
+                }
+                className="field"
+              >
+                <option value="">Any store</option>
+                {stores.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-1">

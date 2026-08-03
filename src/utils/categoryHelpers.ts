@@ -8,6 +8,11 @@ export interface AisleGroup {
   items: GroceryItem[];
 }
 
+/** Items with no storeId are sold everywhere; a set storeId narrows to one store. */
+export function isItemAvailableAtStore(item: GroceryItem, storeId: string): boolean {
+  return !item.storeId || item.storeId === storeId;
+}
+
 export function getCategoryInfo(categoryName: string): AisleCategory {
   const found = CATEGORIES.find(
     (c) => c.id.toLowerCase() === categoryName.toLowerCase() || c.name.toLowerCase() === categoryName.toLowerCase()

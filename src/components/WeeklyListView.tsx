@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { GroceryItem, StoreLayout } from '../types';
-import { groupAndSortItemsByStoreAisle } from '../utils/categoryHelpers';
+import { groupAndSortItemsByStoreAisle, isItemAvailableAtStore } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
 import { CATEGORIES } from '../data/initialData';
 import { AisleRail } from './AisleRail';
@@ -62,7 +62,10 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
     );
   }, [stores, activeStoreId]);
 
-  const weeklyItems = useMemo(() => items.filter((item) => item.inWeeklyList), [items]);
+  const weeklyItems = useMemo(
+    () => items.filter((item) => item.inWeeklyList && isItemAvailableAtStore(item, activeStoreId)),
+    [items, activeStoreId]
+  );
 
   const filteredWeeklyItems = useMemo(() => {
     return weeklyItems.filter((item) => {
@@ -349,7 +352,7 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
           </div>
         </div>
       ) : (
-        <div className="sheet overflow-hidden">
+        <div className="sheet overflow-clip">
           {groupedAisles.map((aisle, idx) => {
             const remainingHere = aisle.items.filter((i) => !i.isBought).length;
 
@@ -361,7 +364,7 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
                     {idx + 1}
                   </span>
                   <span className="tick self-stretch min-h-4" style={zoneStyle(aisle.zone)} aria-hidden="true" />
-                  <span className="sign text-h2 truncate">{aisle.aisleLabel}</span>
+                  <span className="sign text-h2 min-w-0">{aisle.aisleLabel}</span>
                   <span className="font-mono text-label text-ink-3 ms-auto shrink-0">
                     {remainingHere}/{aisle.items.length}
                   </span>
@@ -390,7 +393,7 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <span
-                            className={`text-body font-medium truncate ${
+                            className={`text-body font-medium ${
                               item.isBought ? 'line-through text-ink-3' : 'text-ink'
                             }`}
                           >

@@ -503,16 +503,50 @@ export function useGroceryRoom(initialRoomCode: string) {
   );
 
   const updateStoreLayout = useCallback(
-    async (store: StoreLayout) => {
+    async (
+      store: StoreLayout,
+      activity: { action: ActivityLog['action']; details: string } = {
+        action: 'reorder_aisles',
+        details: 'Updated store aisle sequence',
+      }
+    ) => {
       const { id, ...rest } = store;
       const { error } = await supabase.from('stores').update(storeToRow(rest, roomCode)).eq('id', id);
       if (error) {
         console.error('[Supabase] Failed to update store layout:', error);
         return;
       }
-      logActivity('reorder_aisles', store.name, 'Updated store aisle sequence');
+      logActivity(activity.action, store.name, activity.details);
     },
     [roomCode, logActivity]
+  );
+
+  const deleteStoreLayout = useCallback(
+    async (storeId: string) => {
+      const store = householdState.stores.find((s) => s.id === storeId);
+      if (!store || householdState.stores.length <= 1) return;
+
+      const remaining = householdState.stores.filter((s) => s.id !== storeId);
+      const wasActive = householdState.activeStoreId === storeId;
+      const nextActiveId = wasActive ? remaining[0].id : householdState.activeStoreId;
+
+      setHouseholdState((prev) => ({
+        ...prev,
+        stores: prev.stores.filter((s) => s.id !== storeId),
+        activeStoreId: nextActiveId,
+      }));
+
+      const { error } = await supabase.from('stores').delete().eq('id', storeId);
+      if (error) {
+        console.error('[Supabase] Failed to delete store:', error);
+        return;
+      }
+      if (wasActive) {
+        await supabase.from('rooms').update({ active_store_id: nextActiveId }).eq('code', roomCode);
+      }
+      logActivity('delete_store', store.name, 'Removed store layout');
+    },
+    [householdState.stores, householdState.activeStoreId, roomCode, logActivity]
   );
 
   const createStoreLayout = useCallback(
@@ -551,5 +585,6 @@ export function useGroceryRoom(initialRoomCode: string) {
     changeActiveStore,
     updateStoreLayout,
     createStoreLayout,
+    deleteStoreLayout,
   };
 }

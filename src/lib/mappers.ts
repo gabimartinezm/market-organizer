@@ -14,6 +14,7 @@ export interface ItemRow {
   default_qty: number;
   default_unit: string;
   notes: string | null;
+  store_id: string | null;
   is_favorite: boolean;
   in_weekly_list: boolean;
   weekly_qty: number;
@@ -55,6 +56,7 @@ export function itemFromRow(row: ItemRow): GroceryItem {
     defaultQty: Number(row.default_qty),
     defaultUnit: row.default_unit,
     notes: row.notes ?? undefined,
+    storeId: row.store_id ?? undefined,
     isFavorite: row.is_favorite,
     inWeeklyList: row.in_weekly_list,
     weeklyQty: Number(row.weekly_qty),
@@ -75,6 +77,7 @@ export function itemToRow(item: Omit<GroceryItem, 'id'>, roomCode: string): Omit
     default_qty: item.defaultQty,
     default_unit: item.defaultUnit,
     notes: item.notes ?? null,
+    store_id: item.storeId ?? null,
     is_favorite: item.isFavorite,
     in_weekly_list: item.inWeeklyList,
     weekly_qty: item.weeklyQty,

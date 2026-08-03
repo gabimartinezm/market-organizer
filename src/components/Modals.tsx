@@ -97,6 +97,8 @@ const ACTION_VERB: Record<ActivityLog['action'], string> = {
   reorder_aisles: 'reordered the aisles for',
   edit_item: 'edited',
   delete_item: 'deleted',
+  edit_store: 'updated the details for',
+  delete_store: 'deleted the store',
 };
 
 export const ActivityModal: React.FC<ActivityModalProps> = ({ activity, onClose }) => {

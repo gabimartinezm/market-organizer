@@ -4,14 +4,18 @@ import { CATEGORIES } from '../data/initialData';
 import { getCategoryInfo } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
 import { Dialog } from './Dialog';
-import { Plus, ArrowUp, ArrowDown, Edit2, Check, X } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, Edit2, Check, X, Trash2 } from 'lucide-react';
 
 interface StoreLayoutManagerProps {
   stores: StoreLayout[];
   activeStoreId: string;
   onChangeActiveStore: (storeId: string) => void;
-  onUpdateStoreLayout: (store: StoreLayout) => void;
+  onUpdateStoreLayout: (
+    store: StoreLayout,
+    activity?: { action: 'reorder_aisles' | 'edit_store'; details: string }
+  ) => void;
   onCreateStoreLayout: (store: StoreLayout) => void;
+  onDeleteStoreLayout: (storeId: string) => void;
 }
 
 export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
@@ -20,6 +24,7 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
   onChangeActiveStore,
   onUpdateStoreLayout,
   onCreateStoreLayout,
+  onDeleteStoreLayout,
 }) => {
   const [selectedStoreId, setSelectedStoreId] = useState<string>(activeStoreId);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -28,6 +33,10 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
 
   const [newStoreName, setNewStoreName] = useState('');
   const [newStoreDesc, setNewStoreDesc] = useState('');
+
+  const [editingStoreId, setEditingStoreId] = useState<string | null>(null);
+  const [editStoreName, setEditStoreName] = useState('');
+  const [editStoreDesc, setEditStoreDesc] = useState('');
 
   const currentStore = stores.find((s) => s.id === selectedStoreId) || stores[0];
 
@@ -77,6 +86,24 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
     setNewStoreDesc('');
   };
 
+  const openEditStore = (store: StoreLayout) => {
+    setEditingStoreId(store.id);
+    setEditStoreName(store.name);
+    setEditStoreDesc(store.description);
+  };
+
+  const handleEditStoreSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const store = stores.find((s) => s.id === editingStoreId);
+    if (!store || !editStoreName.trim()) return;
+
+    onUpdateStoreLayout(
+      { ...store, name: editStoreName.trim(), description: editStoreDesc.trim() || 'Custom store layout' },
+      { action: 'edit_store', details: 'Updated store name and description' }
+    );
+    setEditingStoreId(null);
+  };
+
   return (
     <div className="space-y-6">
       <header className="px-4 sm:px-0 flex flex-wrap items-end justify-between gap-4">
@@ -120,8 +147,8 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
                 </span>
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">
-                    <span className="text-body font-medium truncate">{store.name}</span>
-                    {isActive && <span className="eyebrow">In use</span>}
+                    <span className="text-body font-medium min-w-0">{store.name}</span>
+                    {isActive && <span className="eyebrow shrink-0">In use</span>}
                   </span>
                   <span className="block text-sm text-ink-3 truncate">{store.description}</span>
                 </span>
@@ -133,11 +160,30 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
               {!isActive && (
                 <button
                   onClick={() => onChangeActiveStore(store.id)}
-                  className="btn btn-quiet me-4 shrink-0"
+                  className="btn btn-quiet shrink-0"
                 >
                   Use for trips
                 </button>
               )}
+
+              <button
+                onClick={() => openEditStore(store)}
+                className="btn btn-bare shrink-0"
+                aria-label={`Edit ${store.name}`}
+                title="Edit name and notes"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => onDeleteStoreLayout(store.id)}
+                disabled={stores.length <= 1}
+                className="btn btn-bare shrink-0 me-4 hover:text-danger disabled:opacity-40 disabled:hover:text-ink-2"
+                aria-label={`Delete ${store.name}`}
+                title={stores.length <= 1 ? 'You need at least one store' : `Delete ${store.name}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
           );
         })}
@@ -203,7 +249,7 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
                   ) : (
                     <>
                       <div className="min-w-0 flex-1">
-                        <span className="text-body font-medium truncate block">{label}</span>
+                        <span className="text-body font-medium block">{label}</span>
                         <span className="text-sm text-ink-3">{info.name}</span>
                       </div>
 
@@ -288,6 +334,54 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
               </button>
               <button type="submit" className="btn btn-action">
                 Create store
+              </button>
+            </div>
+          </form>
+        </Dialog>
+      )}
+
+      {editingStoreId && (
+        <Dialog
+          title="Edit store"
+          description="Rename it or update the notes. The aisle order stays as you set it."
+          onClose={() => setEditingStoreId(null)}
+        >
+          <form onSubmit={handleEditStoreSubmit} className="space-y-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="edit-store-name" className="eyebrow">
+                Name
+              </label>
+              <input
+                id="edit-store-name"
+                type="text"
+                required
+                value={editStoreName}
+                onChange={(e) => setEditStoreName(e.target.value)}
+                className="field"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="edit-store-desc" className="eyebrow">
+                Notes
+              </label>
+              <input
+                id="edit-store-desc"
+                type="text"
+                placeholder="Downtown branch, produce by the door"
+                value={editStoreDesc}
+                onChange={(e) => setEditStoreDesc(e.target.value)}
+                className="field"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button type="button" onClick={() => setEditingStoreId(null)} className="btn btn-bare">
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-action">
+                Save changes
               </button>
             </div>
           </form>

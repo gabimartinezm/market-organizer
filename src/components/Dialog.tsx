@@ -24,15 +24,21 @@ export const Dialog: React.FC<DialogProps> = ({ title, description, onClose, chi
     const previouslyFocused = document.activeElement as HTMLElement | null;
     panelRef.current?.focus();
 
+    return () => {
+      previouslyFocused?.focus();
+    };
+    // Runs once on mount/unmount only — including `onClose` here would re-run
+    // this on every keystroke inside the dialog (new function identity each
+    // render) and steal focus back to the panel after each character.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', onKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      previouslyFocused?.focus();
-    };
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
   return (

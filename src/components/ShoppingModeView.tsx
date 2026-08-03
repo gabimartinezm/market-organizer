@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { GroceryItem, StoreLayout } from '../types';
-import { groupAndSortItemsByStoreAisle } from '../utils/categoryHelpers';
+import { groupAndSortItemsByStoreAisle, isItemAvailableAtStore } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
 import { AisleRail } from './AisleRail';
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
@@ -40,7 +40,7 @@ const PickRow: React.FC<{
 
       <span className="min-w-0 flex-1">
         <span
-          className={`block truncate font-medium ${large ? 'text-h2' : 'text-body'} ${
+          className={`block font-medium ${large ? 'text-h2' : 'text-body'} ${
             item.isBought ? 'line-through text-ink-3' : 'text-ink'
           }`}
         >
@@ -77,7 +77,10 @@ export const ShoppingModeView: React.FC<ShoppingModeViewProps> = ({
     [stores, activeStoreId]
   );
 
-  const weeklyItems = useMemo(() => items.filter((i) => i.inWeeklyList), [items]);
+  const weeklyItems = useMemo(
+    () => items.filter((i) => i.inWeeklyList && isItemAvailableAtStore(i, activeStoreId)),
+    [items, activeStoreId]
+  );
 
   const totalCount = weeklyItems.length;
   const boughtCount = weeklyItems.filter((i) => i.isBought).length;
@@ -253,7 +256,7 @@ export const ShoppingModeView: React.FC<ShoppingModeViewProps> = ({
               </div>
             </div>
           ) : (
-            <div className="sheet overflow-hidden">
+            <div className="sheet overflow-clip">
               {groupedAisles.map((aisle, idx) => (
                 <section key={aisle.aisleId}>
                   <h2 className="sticky top-24 z-10 flex items-center gap-3 px-4 py-2.5 bg-surface-veil backdrop-blur-sm border-y border-edge">
@@ -265,7 +268,7 @@ export const ShoppingModeView: React.FC<ShoppingModeViewProps> = ({
                       style={zoneStyle(aisle.zone)}
                       aria-hidden="true"
                     />
-                    <span className="sign text-h2 truncate">{aisle.aisleLabel}</span>
+                    <span className="sign text-h2 min-w-0">{aisle.aisleLabel}</span>
                     <span className="font-mono text-label text-ink-3 ms-auto shrink-0">
                       {aisle.items.filter((i) => !i.isBought).length}/{aisle.items.length}
                     </span>

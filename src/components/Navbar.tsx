@@ -66,10 +66,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between gap-4 h-14">
           {/* Wordmark and room. Type only — the name is the mark. */}
           <div className="flex items-baseline gap-3 min-w-0">
-            <span className="sign text-h2 text-ink shrink-0">Family list</span>
+            <span className="hidden sm:inline sign text-h2 text-ink shrink-0">Family list</span>
 
             {isEditingRoom ? (
-              <form onSubmit={handleSaveRoom} className="flex items-center gap-1.5">
+              <form onSubmit={handleSaveRoom} className="flex items-center gap-1.5 shrink-0">
                 <input
                   type="text"
                   value={tempRoom}
@@ -85,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <button
                 onClick={() => setIsEditingRoom(true)}
-                className="font-mono text-data text-ink-2 hover:text-ink truncate decoration-dotted underline underline-offset-4 decoration-edge-strong"
+                className="font-mono text-data text-ink-2 hover:text-ink shrink-0 decoration-dotted underline underline-offset-4 decoration-edge-strong"
                 title="Switch to another room code"
               >
                 {roomCode}
