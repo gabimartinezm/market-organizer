@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { GroceryItem, StoreLayout } from '../types';
-import { CATEGORIES } from '../data/initialData';
+import { AisleCategory, GroceryItem, StoreLayout } from '../types';
 import { getCategoryInfo } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
 import { Dialog } from './Dialog';
@@ -9,6 +8,7 @@ import { Plus, Search, Star, Edit2, Trash2, Check } from 'lucide-react';
 interface MasterCatalogViewProps {
   items: GroceryItem[];
   stores: StoreLayout[];
+  categories: AisleCategory[];
   onToggleWeekly: (itemId: string, inWeeklyList: boolean) => void;
   onAddItem: (item: Omit<GroceryItem, 'id' | 'timesBought'>) => void;
   onEditItem: (item: GroceryItem) => void;
@@ -31,6 +31,7 @@ const BLANK_FORM = {
 export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
   items,
   stores,
+  categories,
   onToggleWeekly,
   onAddItem,
   onEditItem,
@@ -66,7 +67,7 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
       byCategory.get(key)!.push(item);
     });
 
-    const order = CATEGORIES.map((c) => c.id);
+    const order = categories.map((c) => c.id);
     return [...byCategory.entries()]
       .sort(([a], [b]) => {
         const ia = order.indexOf(a);
@@ -74,10 +75,10 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
         return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib);
       })
       .map(([categoryId, groupItems]) => ({
-        info: getCategoryInfo(categoryId),
+        info: getCategoryInfo(categoryId, categories),
         items: groupItems.sort((a, b) => a.name.localeCompare(b.name)),
       }));
-  }, [filteredItems]);
+  }, [filteredItems, categories]);
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,7 +163,7 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
             className="field w-auto"
           >
             <option value="ALL">All aisles</option>
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -333,7 +334,7 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="field"
                 >
-                  {CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
@@ -468,7 +469,7 @@ export const MasterCatalogView: React.FC<MasterCatalogViewProps> = ({
                   onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
                   className="field"
                 >
-                  {CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>

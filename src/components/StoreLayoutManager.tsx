@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { StoreLayout } from '../types';
-import { CATEGORIES } from '../data/initialData';
+import { AisleCategory, StoreLayout, Zone } from '../types';
 import { getCategoryInfo } from '../utils/categoryHelpers';
-import { zoneStyle } from '../utils/zones';
+import { ZONES, zoneStyle } from '../utils/zones';
 import { Dialog } from './Dialog';
 import { Plus, ArrowUp, ArrowDown, Edit2, Check, X, Trash2 } from 'lucide-react';
 
 interface StoreLayoutManagerProps {
   stores: StoreLayout[];
+  categories: AisleCategory[];
   activeStoreId: string;
   onChangeActiveStore: (storeId: string) => void;
   onUpdateStoreLayout: (
@@ -16,20 +16,47 @@ interface StoreLayoutManagerProps {
   ) => void;
   onCreateStoreLayout: (store: StoreLayout) => void;
   onDeleteStoreLayout: (storeId: string) => void;
+  onCreateCategory: (category: AisleCategory) => void;
+  onUpdateCategory: (category: AisleCategory) => void;
 }
+
+/** The five zones are a closed palette — this picks among them, it doesn't invent new ones. */
+const ZonePicker: React.FC<{ value: Zone; onChange: (zone: Zone) => void }> = ({ value, onChange }) => (
+  <div className="flex items-center gap-1.5">
+    {(Object.keys(ZONES) as Zone[]).map((z) => (
+      <button
+        key={z}
+        type="button"
+        onClick={() => onChange(z)}
+        aria-label={ZONES[z].label}
+        aria-pressed={value === z}
+        title={ZONES[z].label}
+        className={`w-6 h-6 rounded-edge border-2 transition-colors ${
+          value === z ? 'border-ink' : 'border-transparent'
+        }`}
+        style={{ backgroundColor: ZONES[z].color }}
+      />
+    ))}
+  </div>
+);
 
 export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
   stores,
+  categories,
   activeStoreId,
   onChangeActiveStore,
   onUpdateStoreLayout,
   onCreateStoreLayout,
   onDeleteStoreLayout,
+  onCreateCategory,
+  onUpdateCategory,
 }) => {
   const [selectedStoreId, setSelectedStoreId] = useState<string>(activeStoreId);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [editingLabelCat, setEditingLabelCat] = useState<string | null>(null);
   const [tempLabel, setTempLabel] = useState('');
+  const [tempCategoryName, setTempCategoryName] = useState('');
+  const [tempCategoryZone, setTempCategoryZone] = useState<Zone>('dry');
 
   const [newStoreName, setNewStoreName] = useState('');
   const [newStoreDesc, setNewStoreDesc] = useState('');
@@ -38,7 +65,14 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
   const [editStoreName, setEditStoreName] = useState('');
   const [editStoreDesc, setEditStoreDesc] = useState('');
 
+  const [isCreatingAisle, setIsCreatingAisle] = useState(false);
+  const [newAisleName, setNewAisleName] = useState('');
+  const [newAisleZone, setNewAisleZone] = useState<Zone>('dry');
+
   const currentStore = stores.find((s) => s.id === selectedStoreId) || stores[0];
+  const availableToAdd = currentStore
+    ? categories.filter((c) => !currentStore.aisleOrder.includes(c.id))
+    : [];
 
   const handleMoveAisle = (index: number, direction: 'up' | 'down') => {
     if (!currentStore) return;
@@ -54,7 +88,7 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
     onUpdateStoreLayout({ ...currentStore, aisleOrder: order });
   };
 
-  const handleSaveCustomLabel = (catId: string) => {
+  const handleSaveAisleEdit = (catId: string) => {
     if (!currentStore) return;
     const custom = { ...(currentStore.customAisleLabels || {}) };
     if (tempLabel.trim()) {
@@ -62,9 +96,46 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
     } else {
       delete custom[catId];
     }
-
     onUpdateStoreLayout({ ...currentStore, customAisleLabels: custom });
+
+    const category = categories.find((c) => c.id === catId);
+    if (category && (tempCategoryName.trim() !== category.name || tempCategoryZone !== category.zone)) {
+      onUpdateCategory({ ...category, name: tempCategoryName.trim() || category.name, zone: tempCategoryZone });
+    }
+
     setEditingLabelCat(null);
+  };
+
+  const handleRemoveAisle = (catId: string) => {
+    if (!currentStore || currentStore.aisleOrder.length <= 1) return;
+    onUpdateStoreLayout({
+      ...currentStore,
+      aisleOrder: currentStore.aisleOrder.filter((id) => id !== catId),
+    });
+  };
+
+  const handleAddExistingAisle = (catId: string) => {
+    if (!currentStore || !catId) return;
+    onUpdateStoreLayout({ ...currentStore, aisleOrder: [...currentStore.aisleOrder, catId] });
+  };
+
+  const handleCreateAisleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentStore || !newAisleName.trim()) return;
+
+    const id = crypto.randomUUID();
+    onCreateCategory({
+      id,
+      name: newAisleName.trim(),
+      defaultAisle: newAisleName.trim(),
+      iconName: 'Package',
+      zone: newAisleZone,
+    });
+    onUpdateStoreLayout({ ...currentStore, aisleOrder: [...currentStore.aisleOrder, id] });
+
+    setIsCreatingAisle(false);
+    setNewAisleName('');
+    setNewAisleZone('dry');
   };
 
   const handleCreateStoreSubmit = (e: React.FormEvent) => {
@@ -75,7 +146,7 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
       id: `store-${Date.now()}`,
       name: newStoreName.trim(),
       description: newStoreDesc.trim() || 'Custom store layout',
-      aisleOrder: CATEGORIES.map((c) => c.id),
+      aisleOrder: categories.map((c) => c.id),
       customAisleLabels: {},
     };
 
@@ -200,7 +271,7 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
 
           <ol>
             {currentStore.aisleOrder.map((catId, index) => {
-              const info = getCategoryInfo(catId);
+              const info = getCategoryInfo(catId, categories);
               const label = currentStore.customAisleLabels?.[catId] || info.defaultAisle;
               const isEditing = editingLabelCat === catId;
 
@@ -222,29 +293,56 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
-                        handleSaveCustomLabel(catId);
+                        handleSaveAisleEdit(catId);
                       }}
-                      className="flex items-center gap-1.5 flex-1 min-w-0"
+                      className="flex-1 min-w-0 flex flex-wrap items-end gap-2 py-1"
                     >
-                      <input
-                        type="text"
-                        value={tempLabel}
-                        onChange={(e) => setTempLabel(e.target.value)}
-                        className="field"
-                        aria-label={`Name for the ${info.name} aisle`}
-                        autoFocus
-                      />
-                      <button type="submit" className="btn btn-action" aria-label="Save aisle name">
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingLabelCat(null)}
-                        className="btn btn-bare"
-                        aria-label="Cancel"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex flex-col gap-1 flex-1 min-w-32">
+                        <label htmlFor={`store-label-${catId}`} className="eyebrow">
+                          Label for this store
+                        </label>
+                        <input
+                          id={`store-label-${catId}`}
+                          type="text"
+                          value={tempLabel}
+                          onChange={(e) => setTempLabel(e.target.value)}
+                          className="field"
+                          autoFocus
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1 flex-1 min-w-32">
+                        <label htmlFor={`aisle-name-${catId}`} className="eyebrow">
+                          Aisle name
+                        </label>
+                        <input
+                          id={`aisle-name-${catId}`}
+                          type="text"
+                          required
+                          value={tempCategoryName}
+                          onChange={(e) => setTempCategoryName(e.target.value)}
+                          className="field"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <span className="eyebrow">Zone</span>
+                        <ZonePicker value={tempCategoryZone} onChange={setTempCategoryZone} />
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button type="submit" className="btn btn-action" aria-label="Save aisle">
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingLabelCat(null)}
+                          className="btn btn-bare"
+                          aria-label="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </form>
                   ) : (
                     <>
@@ -257,9 +355,11 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
                         onClick={() => {
                           setEditingLabelCat(catId);
                           setTempLabel(label);
+                          setTempCategoryName(info.name);
+                          setTempCategoryZone(info.zone);
                         }}
                         className="btn btn-bare shrink-0"
-                        aria-label={`Rename the ${info.name} aisle`}
+                        aria-label={`Edit the ${info.name} aisle`}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -281,6 +381,19 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
                         >
                           <ArrowDown className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={() => handleRemoveAisle(catId)}
+                          disabled={currentStore.aisleOrder.length <= 1}
+                          className="btn btn-bare hover:text-danger disabled:opacity-40 disabled:hover:text-ink-2"
+                          aria-label={`Remove ${info.name} from this store's walking order`}
+                          title={
+                            currentStore.aisleOrder.length <= 1
+                              ? 'A store needs at least one aisle'
+                              : `Remove ${info.name} from this store`
+                          }
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </>
                   )}
@@ -288,6 +401,28 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
               );
             })}
           </ol>
+
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-t border-edge">
+            {availableToAdd.length > 0 && (
+              <select
+                value=""
+                onChange={(e) => handleAddExistingAisle(e.target.value)}
+                aria-label="Add an existing aisle to this store"
+                className="field w-auto"
+              >
+                <option value="">Add existing aisle…</option>
+                {availableToAdd.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button type="button" onClick={() => setIsCreatingAisle(true)} className="btn btn-quiet">
+              <Plus className="w-3.5 h-3.5" />
+              New aisle
+            </button>
+          </div>
         </section>
       )}
 
@@ -382,6 +517,46 @@ export const StoreLayoutManager: React.FC<StoreLayoutManagerProps> = ({
               </button>
               <button type="submit" className="btn btn-action">
                 Save changes
+              </button>
+            </div>
+          </form>
+        </Dialog>
+      )}
+
+      {isCreatingAisle && (
+        <Dialog
+          title="New aisle"
+          description="Added to this store's walking order right away. Every store can add it later too."
+          onClose={() => setIsCreatingAisle(false)}
+        >
+          <form onSubmit={handleCreateAisleSubmit} className="space-y-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="new-aisle-name" className="eyebrow">
+                Name
+              </label>
+              <input
+                id="new-aisle-name"
+                type="text"
+                required
+                placeholder="Seasonal & holiday"
+                value={newAisleName}
+                onChange={(e) => setNewAisleName(e.target.value)}
+                className="field"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="eyebrow">Zone</span>
+              <ZonePicker value={newAisleZone} onChange={setNewAisleZone} />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button type="button" onClick={() => setIsCreatingAisle(false)} className="btn btn-bare">
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-action">
+                Add aisle
               </button>
             </div>
           </form>

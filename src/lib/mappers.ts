@@ -1,4 +1,4 @@
-import { ActivityLog, GroceryItem, StoreLayout } from '../types';
+import { ActivityLog, AisleCategory, GroceryItem, StoreLayout, Zone } from '../types';
 
 /**
  * Postgres uses snake_case columns and timestamptz; the app's types use camelCase
@@ -33,6 +33,15 @@ export interface StoreRow {
   description: string;
   aisle_order: string[];
   custom_aisle_labels: Record<string, string> | null;
+}
+
+export interface CategoryRow {
+  id: string;
+  room_code: string;
+  name: string;
+  default_aisle: string;
+  icon_name: string;
+  zone: string;
 }
 
 export interface ActivityRow {
@@ -107,6 +116,27 @@ export function storeToRow(store: Omit<StoreLayout, 'id'>, roomCode: string): Om
     description: store.description,
     aisle_order: store.aisleOrder,
     custom_aisle_labels: store.customAisleLabels ?? {},
+  };
+}
+
+export function categoryFromRow(row: CategoryRow): AisleCategory {
+  return {
+    id: row.id,
+    name: row.name,
+    defaultAisle: row.default_aisle,
+    iconName: row.icon_name,
+    zone: row.zone as Zone,
+  };
+}
+
+export function categoryToRow(category: AisleCategory, roomCode: string): CategoryRow {
+  return {
+    id: category.id,
+    room_code: roomCode,
+    name: category.name,
+    default_aisle: category.defaultAisle,
+    icon_name: category.iconName,
+    zone: category.zone,
   };
 }
 

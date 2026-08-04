@@ -34,6 +34,8 @@ export default function App() {
     updateStoreLayout,
     createStoreLayout,
     deleteStoreLayout,
+    createCategory,
+    updateCategory,
   } = useGroceryRoom('FAMILY-LIST');
 
   // Trigger brief activity toast when family members update list
@@ -70,6 +72,7 @@ export default function App() {
           <WeeklyListView
             items={householdState.items}
             stores={householdState.stores}
+            categories={householdState.categories}
             activeStoreId={householdState.activeStoreId}
             onChangeActiveStore={changeActiveStore}
             onToggleWeekly={toggleWeekly}
@@ -90,6 +93,7 @@ export default function App() {
           <ShoppingModeView
             items={householdState.items}
             stores={householdState.stores}
+            categories={householdState.categories}
             activeStoreId={householdState.activeStoreId}
             onChangeActiveStore={changeActiveStore}
             onMarkBought={markBought}
@@ -102,6 +106,7 @@ export default function App() {
           <MasterCatalogView
             items={householdState.items}
             stores={householdState.stores}
+            categories={householdState.categories}
             onToggleWeekly={toggleWeekly}
             onAddItem={addItem}
             onEditItem={editItem}
@@ -112,11 +117,14 @@ export default function App() {
         {activeTab === 'stores' && (
           <StoreLayoutManager
             stores={householdState.stores}
+            categories={householdState.categories}
             activeStoreId={householdState.activeStoreId}
             onChangeActiveStore={changeActiveStore}
             onUpdateStoreLayout={updateStoreLayout}
             onCreateStoreLayout={createStoreLayout}
             onDeleteStoreLayout={deleteStoreLayout}
+            onCreateCategory={createCategory}
+            onUpdateCategory={updateCategory}
           />
         )}
       </main>

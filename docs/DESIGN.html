@@ -296,6 +296,23 @@
         background: var(--tick-color);
       }
 
+      .zone-swatch-row {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-snug);
+      }
+      .zone-swatch {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--radius-edge);
+        border: 2px solid transparent;
+        background: var(--tick-color);
+        padding: 0;
+      }
+      .zone-swatch-selected {
+        border-color: var(--ink);
+      }
+
       .cbox {
         width: 20px;
         height: 20px;
@@ -840,6 +857,18 @@
           <span class="zone-chip" style="--tick-color: var(--zone-fresh)">Fresh</span>
           <span class="zone-chip" style="--tick-color: var(--zone-cold)">Chilled</span>
           <span class="zone-chip" style="--tick-color: var(--zone-dry)">Dry goods</span>
+        </div>
+
+        <p class="eyebrow" style="margin-top: var(--space-band)">Zone swatch (choosing a zone)</p>
+        <div class="row" style="margin-top: var(--space-base)">
+          <div class="zone-swatch-row">
+            <button class="zone-swatch" style="--tick-color: var(--zone-fresh)" aria-label="Fresh"></button>
+            <button class="zone-swatch zone-swatch-selected" style="--tick-color: var(--zone-bake)" aria-label="Bakery"></button>
+            <button class="zone-swatch" style="--tick-color: var(--zone-butcher)" aria-label="Counter"></button>
+            <button class="zone-swatch" style="--tick-color: var(--zone-cold)" aria-label="Chilled"></button>
+            <button class="zone-swatch" style="--tick-color: var(--zone-dry)" aria-label="Dry goods"></button>
+          </div>
+          <span class="spec">zone-swatch, one selected</span>
         </div>
 
         <p class="eyebrow" style="margin-top: var(--space-band)">Tabs</p>

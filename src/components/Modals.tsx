@@ -99,6 +99,8 @@ const ACTION_VERB: Record<ActivityLog['action'], string> = {
   delete_item: 'deleted',
   edit_store: 'updated the details for',
   delete_store: 'deleted the store',
+  create_category: 'added a new aisle,',
+  edit_category: 'renamed the aisle',
 };
 
 export const ActivityModal: React.FC<ActivityModalProps> = ({ activity, onClose }) => {

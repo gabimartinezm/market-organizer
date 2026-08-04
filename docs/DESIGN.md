@@ -152,6 +152,10 @@ components:
   tick:
     rounded: "{rounded.pill}"
     width: 3px
+  zone-swatch:
+    rounded: "{rounded.edge}"
+    size: 24px
+    selectedBorder: "{colors.ink}"
   zone-chip:
     backgroundColor: "{colors.surface-sunk}"
     textColor: "{colors.ink-2}"
@@ -307,7 +311,12 @@ name through. Quantity sits in a bordered stepper with the value in `data`.
 Buttons come in three weights: `btn-action` for the one primary move on a screen,
 `btn-quiet` for secondary actions, `btn-bare` for icon-only controls in rows.
 Inputs all use `.field`. Labels use `.eyebrow`. `.zone-chip` names a zone inline
-where no sign is present.
+where no sign is present. Where an aisle's own zone is being *chosen* rather than
+displayed — renaming or creating an aisle — a row of five `zone-swatch` marks
+stands in for a select: one per zone, at `edge` radius like a checkbox, filled
+with the zone's colour, with the picked one outlined in `ink`. It is the only
+place the five zone colours appear together, because it is the one moment the
+palette itself is the thing being edited rather than a location it marks.
 
 The **aisle rail** is the signature component and the only place a chart-like form
 appears. One segment per aisle in walking order, each as wide as the item count

@@ -1,4 +1,3 @@
-import { CATEGORIES } from '../data/initialData';
 import { AisleCategory, GroceryItem, StoreLayout, Zone } from '../types';
 
 export interface AisleGroup {
@@ -13,8 +12,8 @@ export function isItemAvailableAtStore(item: GroceryItem, storeId: string): bool
   return !item.storeId || item.storeId === storeId;
 }
 
-export function getCategoryInfo(categoryName: string): AisleCategory {
-  const found = CATEGORIES.find(
+export function getCategoryInfo(categoryName: string, categories: AisleCategory[]): AisleCategory {
+  const found = categories.find(
     (c) => c.id.toLowerCase() === categoryName.toLowerCase() || c.name.toLowerCase() === categoryName.toLowerCase()
   );
   if (found) return found;
@@ -34,7 +33,8 @@ export function getCategoryInfo(categoryName: string): AisleCategory {
  */
 export function groupAndSortItemsByStoreAisle(
   items: GroceryItem[],
-  store: StoreLayout
+  store: StoreLayout,
+  categories: AisleCategory[]
 ): AisleGroup[] {
   // Create a map of categories present in items
   const itemMap = new Map<string, GroceryItem[]>();
@@ -55,7 +55,7 @@ export function groupAndSortItemsByStoreAisle(
       // Sort items within aisle alphabetically or by bought status
       aisleItems.sort((a, b) => a.name.localeCompare(b.name));
 
-      const info = getCategoryInfo(catId);
+      const info = getCategoryInfo(catId, categories);
 
       result.push({
         aisleId: catId,
@@ -71,7 +71,7 @@ export function groupAndSortItemsByStoreAisle(
   // 2. Append any remaining categories not explicitly in store aisle order
   itemMap.forEach((aisleItems, catId) => {
     aisleItems.sort((a, b) => a.name.localeCompare(b.name));
-    const info = getCategoryInfo(catId);
+    const info = getCategoryInfo(catId, categories);
     result.push({
       aisleId: catId,
       aisleLabel: store.customAisleLabels?.[catId] || info.defaultAisle,

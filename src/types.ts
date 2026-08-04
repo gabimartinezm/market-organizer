@@ -39,7 +39,7 @@ export interface StoreLayout {
 export interface ActivityLog {
   id: string;
   userName: string;
-  action: 'add_weekly' | 'remove_weekly' | 'create_item' | 'mark_bought' | 'mark_unbought' | 'update_qty' | 'clear_bought' | 'store_change' | 'reorder_aisles' | 'edit_item' | 'delete_item' | 'edit_store' | 'delete_store';
+  action: 'add_weekly' | 'remove_weekly' | 'create_item' | 'mark_bought' | 'mark_unbought' | 'update_qty' | 'clear_bought' | 'store_change' | 'reorder_aisles' | 'edit_item' | 'delete_item' | 'edit_store' | 'delete_store' | 'create_category' | 'edit_category';
   itemTitle?: string;
   details?: string;
   timestamp: number;
@@ -55,6 +55,7 @@ export interface HouseholdState {
   roomCode: string;
   items: GroceryItem[];
   stores: StoreLayout[];
+  categories: AisleCategory[];
   activeStoreId: string;
   activity: ActivityLog[];
   activeUsers?: FamilyMember[];

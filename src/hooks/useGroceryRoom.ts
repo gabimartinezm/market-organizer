@@ -3,16 +3,19 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import {
   ActivityRow,
+  CategoryRow,
   ItemRow,
   StoreRow,
   activityFromRow,
+  categoryFromRow,
+  categoryToRow,
   itemFromRow,
   itemToRow,
   storeFromRow,
   storeToRow,
 } from '../lib/mappers';
-import { ActivityLog, FamilyMember, GroceryItem, HouseholdState, StoreLayout } from '../types';
-import { INITIAL_ITEMS, INITIAL_STORES } from '../data/initialData';
+import { ActivityLog, AisleCategory, FamilyMember, GroceryItem, HouseholdState, StoreLayout } from '../types';
+import { CATEGORIES, INITIAL_ITEMS, INITIAL_STORES } from '../data/initialData';
 
 const DEFAULT_ROOM = 'FAMILY-LIST';
 const ACTIVITY_LIMIT = 50;
@@ -63,7 +66,10 @@ async function ensureRoomExists(roomCode: string): Promise<void> {
     .select('code');
 
   if (error) throw error;
-  if (!created || created.length === 0) return; // Room already existed.
+  if (!created || created.length === 0) {
+    await backfillCategoriesIfMissing(roomCode); // Room predates per-room aisle editing.
+    return;
+  }
 
   // Seeded rows get explicit, staggered timestamps so the catalog and store list
   // come back in the same order they appear in initialData.ts.
@@ -80,12 +86,18 @@ async function ensureRoomExists(roomCode: string): Promise<void> {
     created_at: new Date(now - i * 1000).toISOString(),
   }));
 
-  const [storeResult, itemResult] = await Promise.all([
+  const categoryRows = CATEGORIES.map((category) => categoryToRow(category, roomCode));
+
+  const [storeResult, itemResult, categoryResult] = await Promise.all([
     supabase.from('stores').insert(storeRows),
     supabase.from('items').insert(itemRows),
+    supabase
+      .from('categories')
+      .upsert(categoryRows, { onConflict: 'room_code,id', ignoreDuplicates: true }),
   ]);
   if (storeResult.error) throw storeResult.error;
   if (itemResult.error) throw itemResult.error;
+  if (categoryResult.error) throw categoryResult.error;
 
   await Promise.all([
     supabase.from('rooms').update({ active_store_id: storeRows[0].id }).eq('code', roomCode),
@@ -99,8 +111,26 @@ async function ensureRoomExists(roomCode: string): Promise<void> {
   ]);
 }
 
+/** Rooms created before per-room aisle editing shipped have no categories rows yet. */
+async function backfillCategoriesIfMissing(roomCode: string): Promise<void> {
+  const { count, error } = await supabase
+    .from('categories')
+    .select('id', { count: 'exact', head: true })
+    .eq('room_code', roomCode);
+  if (error) throw error;
+  if (count) return;
+
+  const { error: seedError } = await supabase
+    .from('categories')
+    .upsert(CATEGORIES.map((category) => categoryToRow(category, roomCode)), {
+      onConflict: 'room_code,id',
+      ignoreDuplicates: true,
+    });
+  if (seedError) throw seedError;
+}
+
 async function fetchRoomState(roomCode: string): Promise<HouseholdState> {
-  const [room, stores, items, activity] = await Promise.all([
+  const [room, stores, items, categories, activity] = await Promise.all([
     supabase.from('rooms').select('code, active_store_id').eq('code', roomCode).single(),
     supabase
       .from('stores')
@@ -114,6 +144,7 @@ async function fetchRoomState(roomCode: string): Promise<HouseholdState> {
       .eq('room_code', roomCode)
       .order('created_at', { ascending: false })
       .order('name', { ascending: true }),
+    supabase.from('categories').select('*').eq('room_code', roomCode).order('created_at', { ascending: true }),
     supabase
       .from('activity')
       .select('*')
@@ -128,6 +159,7 @@ async function fetchRoomState(roomCode: string): Promise<HouseholdState> {
     roomCode,
     items: (items.data ?? []).map((row) => itemFromRow(row as ItemRow)),
     stores: storeList,
+    categories: (categories.data ?? []).map((row) => categoryFromRow(row as CategoryRow)),
     activeStoreId: room.data?.active_store_id ?? storeList[0]?.id ?? '',
     activity: (activity.data ?? []).map((row) => activityFromRow(row as ActivityRow)),
     activeUsers: [],
@@ -148,6 +180,7 @@ export function useGroceryRoom(initialRoomCode: string) {
     roomCode,
     items: [],
     stores: [],
+    categories: [],
     activeStoreId: '',
     activity: [],
     activeUsers: [],
@@ -217,6 +250,26 @@ export function useGroceryRoom(initialRoomCode: string) {
               return {
                 ...prev,
                 stores: exists ? prev.stores.map((s) => (s.id === store.id ? store : s)) : [...prev.stores, store],
+              };
+            });
+          }
+        )
+        .on<CategoryRow>(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'categories', filter: roomFilter },
+          (payload) => {
+            setHouseholdState((prev) => {
+              if (payload.eventType === 'DELETE') {
+                const old = payload.old as CategoryRow;
+                return { ...prev, categories: prev.categories.filter((c) => c.id !== old.id) };
+              }
+              const category = categoryFromRow(payload.new as CategoryRow);
+              const exists = prev.categories.some((c) => c.id === category.id);
+              return {
+                ...prev,
+                categories: exists
+                  ? prev.categories.map((c) => (c.id === category.id ? category : c))
+                  : [...prev.categories, category],
               };
             });
           }
@@ -564,6 +617,35 @@ export function useGroceryRoom(initialRoomCode: string) {
     [roomCode, logActivity]
   );
 
+  const createCategory = useCallback(
+    async (category: AisleCategory) => {
+      const { error } = await supabase.from('categories').insert(categoryToRow(category, roomCode));
+      if (error) {
+        console.error('[Supabase] Failed to create aisle:', error);
+        return;
+      }
+      logActivity('create_category', category.name, 'Added a new aisle');
+    },
+    [roomCode, logActivity]
+  );
+
+  const updateCategory = useCallback(
+    async (category: AisleCategory) => {
+      const { id, ...rest } = categoryToRow(category, roomCode);
+      const { error } = await supabase
+        .from('categories')
+        .update(rest)
+        .eq('room_code', roomCode)
+        .eq('id', id);
+      if (error) {
+        console.error('[Supabase] Failed to update aisle:', error);
+        return;
+      }
+      logActivity('edit_category', category.name, 'Updated aisle name and colour');
+    },
+    [roomCode, logActivity]
+  );
+
   return {
     roomCode,
     changeRoom,
@@ -586,5 +668,7 @@ export function useGroceryRoom(initialRoomCode: string) {
     updateStoreLayout,
     createStoreLayout,
     deleteStoreLayout,
+    createCategory,
+    updateCategory,
   };
 }

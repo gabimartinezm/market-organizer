@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { GroceryItem, StoreLayout } from '../types';
+import { AisleCategory, GroceryItem, StoreLayout } from '../types';
 import { groupAndSortItemsByStoreAisle, isItemAvailableAtStore } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
 import { AisleRail } from './AisleRail';
@@ -8,6 +8,7 @@ import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
 interface ShoppingModeViewProps {
   items: GroceryItem[];
   stores: StoreLayout[];
+  categories: AisleCategory[];
   activeStoreId: string;
   onChangeActiveStore: (storeId: string) => void;
   onMarkBought: (itemId: string, isBought: boolean) => void;
@@ -63,6 +64,7 @@ const PickRow: React.FC<{
 export const ShoppingModeView: React.FC<ShoppingModeViewProps> = ({
   items,
   stores,
+  categories,
   activeStoreId,
   onChangeActiveStore,
   onMarkBought,
@@ -87,8 +89,8 @@ export const ShoppingModeView: React.FC<ShoppingModeViewProps> = ({
   const remainingCount = totalCount - boughtCount;
 
   const groupedAisles = useMemo(
-    () => groupAndSortItemsByStoreAisle(weeklyItems, activeStore),
-    [weeklyItems, activeStore]
+    () => groupAndSortItemsByStoreAisle(weeklyItems, activeStore, categories),
+    [weeklyItems, activeStore, categories]
   );
 
   // The list can shrink under us while shopping, so never index past the end.

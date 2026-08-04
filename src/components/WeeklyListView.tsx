@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { GroceryItem, StoreLayout } from '../types';
+import { AisleCategory, GroceryItem, StoreLayout } from '../types';
 import { groupAndSortItemsByStoreAisle, isItemAvailableAtStore } from '../utils/categoryHelpers';
 import { zoneStyle } from '../utils/zones';
-import { CATEGORIES } from '../data/initialData';
 import { AisleRail } from './AisleRail';
 import { Plus, Minus, Star, Search, ArrowRight, X, Check } from 'lucide-react';
 
 interface WeeklyListViewProps {
   items: GroceryItem[];
   stores: StoreLayout[];
+  categories: AisleCategory[];
   activeStoreId: string;
   onChangeActiveStore: (storeId: string) => void;
   onToggleWeekly: (itemId: string, inWeeklyList: boolean) => void;
@@ -29,6 +29,7 @@ const UNITS = ['pcs', 'lbs', 'bunch', 'gal', 'carton', 'box', 'bag', 'pack', 'ja
 export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
   items,
   stores,
+  categories,
   activeStoreId,
   onChangeActiveStore,
   onToggleWeekly,
@@ -57,10 +58,10 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
         id: 'store-default',
         name: 'Default Store',
         description: '',
-        aisleOrder: CATEGORIES.map((c) => c.id),
+        aisleOrder: categories.map((c) => c.id),
       }
     );
-  }, [stores, activeStoreId]);
+  }, [stores, activeStoreId, categories]);
 
   const weeklyItems = useMemo(
     () => items.filter((item) => item.inWeeklyList && isItemAvailableAtStore(item, activeStoreId)),
@@ -86,12 +87,12 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
 
   // The rail always maps the whole trip; the list below it is what's filtered.
   const allAisles = useMemo(
-    () => groupAndSortItemsByStoreAisle(weeklyItems, activeStore),
-    [weeklyItems, activeStore]
+    () => groupAndSortItemsByStoreAisle(weeklyItems, activeStore, categories),
+    [weeklyItems, activeStore, categories]
   );
   const groupedAisles = useMemo(
-    () => groupAndSortItemsByStoreAisle(filteredWeeklyItems, activeStore),
-    [filteredWeeklyItems, activeStore]
+    () => groupAndSortItemsByStoreAisle(filteredWeeklyItems, activeStore, categories),
+    [filteredWeeklyItems, activeStore, categories]
   );
   const aislesWithItemsLeft = allAisles.filter((a) => a.items.some((i) => !i.isBought)).length;
 
@@ -225,7 +226,7 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
               className="field w-auto"
             >
               <option value="ALL">All aisles</option>
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
@@ -271,7 +272,7 @@ export const WeeklyListView: React.FC<WeeklyListViewProps> = ({
                 onChange={(e) => setQuickCategory(e.target.value)}
                 className="field w-auto"
               >
-                {CATEGORIES.map((c) => (
+                {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
